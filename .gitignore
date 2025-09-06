@@ -1,0 +1,239 @@
+# Environment variables
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.cover
+*.log
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.pdm.toml
+__pypackages__/
+celerybeat-schedule
+*.sage.py
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+.cache/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.yarn-integrity
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.iml
+.vs/
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+
+# Data directories
+data/snapshots/*
+!data/snapshots/.gitkeep
+data/models/*
+!data/models/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+
+# ML Models (downloaded)
+api/models/
+*.pt
+*.pth
+*.h5
+*.pkl
+*.joblib
+*.safetensors
+
+# Logs
+logs/
+*.log
+log/
+*.pid
+*.seed
+*.pid.lock
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+tmp/
+temp/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Prefect
+.prefect/
+prefect.db
+
+# Redis
+dump.rdb
+redis.log
+
+# Alembic
+alembic/versions/*
+!alembic/versions/.gitkeep
+
+# SSL Certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Secrets
+secrets/
+*.secret
+credentials.json
+service-account.json
+
+# Backups
+*.backup
+*.bak
+*.old
+backups/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+site/
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Lock files (keep these in version control)
+# package-lock.json
+# yarn.lock
+# Pipfile.lock
+# poetry.lock
+
+# Production builds
+dist/
+build/
+*.min.js
+*.min.css
+
+# Local development
+local/
+.local/
+scratch/
+
+# Performance profiling
+*.prof
+*.lprof
+.benchmarks/
+
+# Generated files
+generated/
+auto-generated/
+
+# Monitoring
+.monitoring/
+grafana-storage/
+prometheus-data/
