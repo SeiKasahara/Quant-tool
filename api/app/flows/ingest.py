@@ -24,63 +24,10 @@ from app.nlp.novelty import novelty_calculator
 from app.services.fuse import signal_fuser
 from app.services.notifier import slack_notifier
 from app.services.snapshots import snapshot_service
+from app.flows.mock_articles import MOCK_ARTICLES
 
 logger = structlog.get_logger()
 
-# Mock data for testing when feeds are unavailable
-MOCK_ARTICLES = [
-    {
-        "title": "Apple (AAPL) Raises Full-Year Guidance After Strong iPhone Sales",
-        "url": "https://example.com/apple-guidance-up",
-        "published": datetime.now() - timedelta(hours=1),
-        "source": "DJ",
-        "content": """Apple Inc. (AAPL) announced today that it is raising its full-year revenue guidance 
-        following stronger-than-expected iPhone 15 sales in the fourth quarter. The company now expects 
-        revenue growth of 8-10% for the fiscal year, up from previous guidance of 5-7%. CEO Tim Cook 
-        cited strong demand in emerging markets and the success of new AI features as key drivers. 
-        The stock jumped 3% in after-hours trading following the announcement."""
-    },
-    {
-        "title": "Tesla (TSLA) Beats Earnings Estimates, Announces New Product Launch",
-        "url": "https://example.com/tesla-earnings",
-        "published": datetime.now() - timedelta(hours=2),
-        "source": "NASDAQ",
-        "content": """Tesla Inc. (TSLA) reported quarterly earnings that exceeded Wall Street estimates, 
-        with earnings per share of $0.85 versus expectations of $0.73. The electric vehicle maker also 
-        unveiled plans for a new affordable model targeting the $25,000 price point. Production is 
-        expected to begin in late 2024. Revenue grew 15% year-over-year to $25.2 billion."""
-    },
-    {
-        "title": "Microsoft (MSFT) Announces Major Acquisition in AI Space",
-        "url": "https://example.com/microsoft-acquisition",
-        "published": datetime.now() - timedelta(hours=3),
-        "source": "Reuters",
-        "content": """Microsoft Corporation (MSFT) has agreed to acquire AI startup DeepMind Technologies 
-        for $12 billion, marking its largest acquisition in the artificial intelligence sector. The deal 
-        is expected to close in Q2 2024, pending regulatory approval. This acquisition will strengthen 
-        Microsoft's position in enterprise AI solutions and complement its existing Azure AI services."""
-    },
-    {
-        "title": "Amazon (AMZN) Faces Regulatory Investigation Over Market Practices",
-        "url": "https://example.com/amazon-probe",
-        "published": datetime.now() - timedelta(hours=4),
-        "source": "WSJ",
-        "content": """Amazon.com Inc. (AMZN) is facing a new regulatory probe from the FTC regarding its 
-        marketplace practices and treatment of third-party sellers. The investigation focuses on whether 
-        Amazon gives preferential treatment to its own products. The company stated it will cooperate 
-        fully with regulators. Amazon shares fell 2% in pre-market trading."""
-    },
-    {
-        "title": "NVIDIA (NVDA) Announces Increased Dividend and Share Buyback Program",
-        "url": "https://example.com/nvidia-dividend",
-        "published": datetime.now() - timedelta(hours=5),
-        "source": "Bloomberg",
-        "content": """NVIDIA Corporation (NVDA) announced a 15% increase in its quarterly dividend and 
-        authorized a new $25 billion share buyback program. The semiconductor giant's strong cash flow 
-        from AI chip sales has enabled increased returns to shareholders. The dividend will increase 
-        to $0.04 per share, payable next quarter."""
-    }
-]
 
 @task
 def fetch_feeds(feed_urls: List[str], use_mock: bool = False) -> List[Dict]:
@@ -164,12 +111,10 @@ async def extract_article_content(article: Dict) -> Dict:
     
     return article
 
-@task
 def compute_content_hash(content: str) -> str:
     """Compute hash of content for deduplication"""
     return hashlib.sha256(content.encode()).hexdigest()
 
-@task
 def ensure_ticker_exists(db: Session, ticker_symbol: str) -> Optional[Ticker]:
     """Ensure ticker exists in database"""
     
@@ -246,6 +191,7 @@ async def process_document(article: Dict, db: Session) -> Optional[Document]:
     # Process entities
     for entity_data in nlp_result["entities"]:
         # Check if entity exists
+        seen_entity_ids = set()
         entity = db.query(Entity).filter(Entity.name == entity_data["text"]).first()
         
         if not entity:
@@ -266,15 +212,29 @@ async def process_document(article: Dict, db: Session) -> Optional[Document]:
             db.add(entity)
             db.flush()
         
-        # Create document-entity relationship
-        doc_entity = DocumentEntity(
-            document_id=doc.id,
-            entity_id=entity.id,
-            mentions=1,
-            relevance_score=0.5
-        )
-        db.add(doc_entity)
-    
+        if entity.id in seen_entity_ids:
+            # 如果这轮已经添加过，就直接把已有记录的 mentions +1
+            existing_de = db.query(DocumentEntity).filter_by(
+               document_id=doc.id, entity_id=entity.id
+            ).first()
+            if existing_de:
+                existing_de.mentions = (existing_de.mentions or 0) + 1
+            continue
+
+        existing_de = db.query(DocumentEntity).filter_by(
+            document_id=doc.id, entity_id=entity.id
+        ).first()
+        if existing_de:
+            existing_de.mentions = (existing_de.mentions or 0) + 1
+        else:
+            db.add(DocumentEntity(
+                document_id=doc.id,
+                entity_id=entity.id,
+                mentions=1,
+                relevance_score=0.5
+            ))
+        seen_entity_ids.add(entity.id)
+
     # Extract events
     events = event_extractor.extract_events(
         content,
@@ -537,11 +497,12 @@ async def ingest_flow(use_mock: bool = False):
                         doc_id=doc.id,
                         signals_generated=len(signals)
                     )
-                
+
             except Exception as e:
                 logger.error(f"Error processing article: {e}", article=article.get("title"))
+                db.rollback()  # <<< 关键：回滚当前事务
                 continue
-        
+
         # Commit all changes
         db.commit()
         

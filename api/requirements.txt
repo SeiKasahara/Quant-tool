@@ -7,8 +7,8 @@ pgvector==0.2.3
 redis==5.0.1
 prefect==2.14.4
 spacy==3.7.2
-transformers==4.35.2
-sentence-transformers==2.2.2
+transformers==4.43.4
+sentence-transformers>=2.6.0
 torch==2.1.1
 trafilatura==1.6.3
 feedparser==6.0.10
@@ -26,3 +26,5 @@ pytest==7.4.3
 pytest-asyncio==0.21.1
 structlog==23.2.0
 python-multipart==0.0.6
+griffe==0.49.0
+huggingface_hub>=0.20.0

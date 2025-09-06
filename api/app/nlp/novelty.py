@@ -6,6 +6,7 @@ from sqlalchemy import and_
 import structlog
 
 from app.db.models import Document
+from sqlalchemy import true
 from app.nlp.pipeline import nlp_pipeline
 
 logger = structlog.get_logger()
@@ -38,7 +39,7 @@ class NoveltyCalculator:
             and_(
                 Document.published_at >= lookback_date,
                 Document.published_at < published_at,
-                Document.meta['tickers'].astext.contains(ticker) if ticker else True
+                Document.meta['tickers'].contains([ticker]) if ticker else true()
             )
         ).limit(100).all()
         
@@ -125,7 +126,7 @@ class NoveltyCalculator:
             and_(
                 Document.published_at >= window_start,
                 Document.published_at <= published_at,
-                Document.meta['tickers'].astext.contains(ticker) if ticker else True
+                Document.meta['tickers'].contains([ticker]) if ticker else true()
             )
         ).count()
         
