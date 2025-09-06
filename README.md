@@ -99,11 +99,9 @@ curl -X POST http://localhost:8000/backtest/event-study \
 
 ### /signals
 Main dashboard with signal list, filters, and evidence drawer
-![Signals Page](docs/signals-page.png)
 
 ### /documents/{id}
 Document viewer with extracted entities, events, and price chart
-![Document Page](docs/document-page.png)
 
 ### /tickers/{symbol}
 Ticker-specific signals with price chart and signal markers

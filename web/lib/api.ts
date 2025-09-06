@@ -93,3 +93,49 @@ export default {
   getTickerPrices,
   getTickerSignals
 }
+
+// --- Sources & Ingest helpers ---
+export async function getSources(): Promise<any[]> {
+  try {
+    const url = `${API_BASE}/sources`
+    return await jsonFetch<any[]>(url)
+  } catch (e) {
+    const url = toRelativeNextPath('/api/sources')
+    return await jsonFetch(url)
+  }
+}
+
+export async function createSource(payload: any): Promise<any> {
+  const url = `${API_BASE}/sources`
+  return await jsonFetch(url, { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
+}
+
+export async function testSource(idOrPayload: any): Promise<any> {
+  // If id provided, call test endpoint; if object, call /sources/test
+  if (typeof idOrPayload === 'string' || typeof idOrPayload === 'number') {
+    const url = `${API_BASE}/sources/${idOrPayload}/test`
+    return await jsonFetch(url, { method: 'POST' })
+  }
+  const url = `${API_BASE}/sources/test`
+  return await jsonFetch(url, { method: 'POST', body: JSON.stringify(idOrPayload), headers: { 'Content-Type': 'application/json' } })
+}
+
+export async function runSource(id: number): Promise<any> {
+  const url = `${API_BASE}/sources/${id}/run`
+  return await jsonFetch(url, { method: 'POST' })
+}
+
+export async function backfillSource(id: number, params: any): Promise<any> {
+  const url = `${API_BASE}/sources/${id}/backfill`
+  return await jsonFetch(url, { method: 'POST', body: JSON.stringify(params), headers: { 'Content-Type': 'application/json' } })
+}
+
+export async function importUrl(urlToImport: string, dryRun = true): Promise<any> {
+  try {
+    const url = `${API_BASE}/import/url`
+    return await jsonFetch(url, { method: 'POST', body: JSON.stringify({ url: urlToImport, dry_run: dryRun }), headers: { 'Content-Type': 'application/json' } })
+  } catch (e) {
+    const url = toRelativeNextPath('/api/import/url')
+    return await jsonFetch(url, { method: 'POST', body: JSON.stringify({ url: urlToImport, dry_run: dryRun }), headers: { 'Content-Type': 'application/json' } })
+  }
+}

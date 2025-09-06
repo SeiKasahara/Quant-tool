@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import structlog
 
-from app.api import signals, documents, tickers, health, backtest
+from app.api import signals, documents, tickers, health, backtest, metrics as metrics_api, sources as sources_api
+from app.services import ingest_events
+from fastapi import Request
+from fastapi.responses import StreamingResponse
+import asyncio
 from app.core.config import settings
 from app.core.logging import setup_logging
 
@@ -35,6 +39,28 @@ app.include_router(signals.router, prefix="/signals", tags=["signals"])
 app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(tickers.router, prefix="/tickers", tags=["tickers"])
 app.include_router(backtest.router, prefix="/backtest", tags=["backtest"])
+app.include_router(metrics_api.router, prefix="", tags=["metrics"])
+app.include_router(sources_api.router, prefix="", tags=["sources"])
+
+
+@app.get('/ingest/stream')
+async def ingest_stream(request: Request):
+    # SSE endpoint forwarding in-memory ingest events
+    async def event_generator():
+        try:
+            async for ev in ingest_events.subscribe():
+                import json
+                yield f'data: {json.dumps(ev)}\n\n'
+                if await request.is_disconnected():
+                    break
+        finally:
+            return
+
+    headers = {
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no'
+    }
+    return StreamingResponse(event_generator(), media_type='text/event-stream', headers=headers)
 
 @app.get("/")
 async def root():

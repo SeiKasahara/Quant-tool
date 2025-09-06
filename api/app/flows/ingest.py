@@ -25,6 +25,7 @@ from app.services.fuse import signal_fuser
 from app.services.notifier import slack_notifier
 from app.services.snapshots import snapshot_service
 from app.flows.mock_articles import MOCK_ARTICLES
+from app.ingestion.pipeline import save_document_from_raw
 
 logger = structlog.get_logger()
 
@@ -472,7 +473,7 @@ async def ingest_flow(use_mock: bool = False):
     logger.info(f"Fetched {len(articles)} articles")
     
     # Process each article
-    db = SessionLocal()
+    db = None
     try:
         processed_docs = []
         all_signals = []
@@ -481,8 +482,16 @@ async def ingest_flow(use_mock: bool = False):
             try:
                 # Extract content
                 article = await extract_article_content(article)
-                
-                # Process document
+                # If running in mock mode without DB, save documents to data/ via pipeline
+                if use_mock:
+                    saved = save_document_from_raw(article)
+                    if saved:
+                        processed_docs.append(saved)
+                        logger.info('Processed mock document', title=saved.get('title'), url=saved.get('url'))
+                    continue
+
+                # Process document (DB path)
+                db = SessionLocal()
                 doc = await process_document(article, db)
                 
                 if doc:

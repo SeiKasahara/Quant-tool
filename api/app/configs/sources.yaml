@@ -1,0 +1,94 @@
+# Sample sources configuration (dev/stage/prod overrides supported via env var or directory)
+-sources:
+-  - name: news_rss_global
+-    type: news
+-    enabled: true
+-    schedule: "@hourly"
+-    rate_limit: { rps: 1, burst: 5 }
+-    retries: 3
+-    timeout: 10
+-    urls:
+-      - https://feeds.a.dj.com/rss/RSSMarketsMain.xml
+-      - https://www.reuters.com/markets/us/
+-    source_name: news_rss_global
+-
+-  - name: company_ir_example
+-    type: company_ir
+-    enabled: true
+-    schedule: "@daily"
+-    urls:
+-      - https://www.example.com/sitemap.xml
+-    source_name: example_ir
+-
+-  - name: edgar_daily
+-    type: edgar
+-    enabled: true
+-    schedule: "@daily"
+-    params:
+-      cik_list: [1234567]
+-    source_name: edgar
+-
+-  - name: reddit_stocks
+-    type: reddit
+-    enabled: false
+-    schedule: "@hourly"
+-    params:
+-      subreddits: [stocks, wallstreetbets]
+-    source_name: reddit
+-
+-  - name: youtube_channel_x
+-    type: youtube
+-    enabled: false
+-    schedule: "@daily"
+-    params:
+-      channelIds: [UC_x5XG1OV2P6uZZ5FSM9Ttw]
+-    source_name: youtube
++
++sources:
++  - name: news_rss_global
++    type: news
++    enabled: true
++    schedule: "@hourly"
++    rate_limit:
++      rps: 1
++      burst: 5
++    retries: 3
++    timeout: 10
++    urls:
++      - https://feeds.a.dj.com/rss/RSSMarketsMain.xml
++      - https://www.reuters.com/rssFeed/worldNews
++    source_name: news_rss_global
++
++  - name: company_ir_example
++    type: company_ir
++    enabled: true
++    schedule: "@daily"
++    urls:
++      - https://www.example.com/sitemap.xml
++    source_name: example_ir
++
++  - name: edgar_daily
++    type: edgar
++    enabled: true
++    schedule: "@daily"
++    params:
++      cik_list: [1234567]
++    source_name: edgar
++
++  - name: reddit_stocks
++    type: reddit
++    enabled: false
++    schedule: "@hourly"
++    params:
++      subreddits: [stocks, wallstreetbets]
++    source_name: reddit
++
++  - name: youtube_channel_x
++    type: youtube
++    enabled: false
++    schedule: "@daily"
++    params:
++      channelIds: [UC_x5XG1OV2P6uZZ5FSM9Ttw]
++    source_name: youtube
++
+*** End Patch
