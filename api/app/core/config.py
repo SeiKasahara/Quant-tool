@@ -13,8 +13,10 @@ class Settings(BaseSettings):
     WEB_PORT: int = 3000
     API_BASE_URL: str = "http://api:8000"
     WEB_PUBLIC_API: str = "http://localhost:8000"
+    SESSION_EXPIRE_SECONDS: int = 86400
     
     # Confidence weights
+    # Should have a interface to adjust these dynamically in the future
     W_SRC: float = 0.35
     W_NOVEL: float = 0.25
     W_EVT: float = 0.25
@@ -24,6 +26,7 @@ class Settings(BaseSettings):
     TAU: float = 86400.0
     
     # Thresholds
+    # Should have a interface to adjust these dynamically in the future
     MIN_CONFIDENCE_DEFAULT: float = 0.6
     HIGH_PRIORITY_SOURCE_WEIGHT: float = 0.8
     HIGH_NOVELTY_THRESHOLD: float = 0.7

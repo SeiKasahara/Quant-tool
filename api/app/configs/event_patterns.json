@@ -1,0 +1,77 @@
+{
+  "guidance_up": [
+    "raises?\\s+(?:full[- ]?year\\s+)?guidance",
+    "increases?\\s+(?:revenue\\s+)?outlook",
+    "upgrades?\\s+(?:earnings\\s+)?forecast",
+    "boosts?\\s+(?:profit\\s+)?guidance",
+    "lifts?\\s+(?:sales\\s+)?expectations"
+  ],
+  "guidance_down": [
+    "lowers?\\s+(?:full[- ]?year\\s+)?guidance",
+    "cuts?\\s+(?:revenue\\s+)?outlook",
+    "reduces?\\s+(?:earnings\\s+)?forecast",
+    "slashes?\\s+(?:profit\\s+)?guidance",
+    "downgrades?\\s+expectations"
+  ],
+  "earnings_beat": [
+    "beats?\\s+(?:earnings\\s+)?estimates?",
+    "tops?\\s+(?:profit\\s+)?expectations?",
+    "exceeds?\\s+(?:revenue\\s+)?forecasts?",
+    "surpasses?\\s+(?:wall\\s+street\\s+)?estimates?",
+    "stronger[- ]than[- ]expected\\s+(?:earnings|results)"
+  ],
+  "earnings_miss": [
+    "misses?\\s+(?:earnings\\s+)?estimates?",
+    "falls?\\s+short\\s+of\\s+expectations?",
+    "disappoints?\\s+(?:on\\s+)?(?:earnings|revenue)",
+    "below\\s+(?:wall\\s+street\\s+)?estimates?",
+    "weaker[- ]than[- ]expected\\s+(?:earnings|results)"
+  ],
+  "mna": [
+    "acquires?\\s+",
+    "to\\s+acquire\\s+",
+    "merger\\s+(?:with|agreement)",
+    "takeover\\s+(?:bid|offer)",
+    "agrees?\\s+to\\s+(?:buy|purchase|merge)",
+    "completes?\\s+(?:acquisition|merger)",
+    "announces?\\s+(?:acquisition|merger)"
+  ],
+  "litigation": [
+    "lawsuit\\s+(?:filed|against)",
+    "sued\\s+(?:by|for)",
+    "legal\\s+(?:action|proceedings?)",
+    "regulatory\\s+(?:probe|investigation)",
+    "(?:SEC|DOJ|FTC)\\s+(?:investigat|prob|inquir)",
+    "settles?\\s+(?:lawsuit|charges?)",
+    "class[- ]action\\s+(?:lawsuit|suit)"
+  ],
+  "product_launch": [
+    "launches?\\s+(?:new\\s+)?product",
+    "unveils?\\s+(?:new\\s+)?(?:product|service)",
+    "introduces?\\s+(?:new\\s+)?(?:product|offering)",
+    "debuts?\\s+(?:new\\s+)?(?:product|platform)",
+    "announces?\\s+(?:new\\s+)?(?:product|service)\\s+launch"
+  ],
+  "executive_change": [
+    "(?:CEO|CFO|CTO|COO)\\s+(?:resigns?|departs?|steps?\\s+down)",
+    "appoints?\\s+(?:new\\s+)?(?:CEO|CFO|CTO|COO)",
+    "names?\\s+(?:new\\s+)?(?:chief|president)",
+    "(?:executive|leadership)\\s+(?:change|transition)",
+    "replaces?\\s+(?:CEO|CFO|CTO|COO)"
+  ],
+  "dividend": [
+    "declares?\\s+(?:quarterly\\s+)?dividend",
+    "announces?\\s+(?:dividend|distribution)",
+    "increases?\\s+dividend",
+    "cuts?\\s+dividend",
+    "suspends?\\s+dividend",
+    "dividend\\s+(?:payment|declaration)"
+  ],
+  "buyback": [
+    "share\\s+(?:buyback|repurchase)",
+    "stock\\s+(?:buyback|repurchase)",
+    "authorizes?\\s+(?:\\$[\\d.]+[BMK]?\\s+)?(?:buyback|repurchase)",
+    "announces?\\s+(?:\\$[\\d.]+[BMK]?\\s+)?(?:buyback|repurchase)",
+    "expands?\\s+(?:buyback|repurchase)\\s+program"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "weights": {
+    "W_SRC": 0.35,
+    "W_NOVEL": 0.25,
+    "W_EVT": 0.25,
+    "W_BUZZ": 0.15,
+    "K_CONS": 0.1,
+    "K_UNC": 0.15,
+    "TAU": 86400.0
+  },
+  "source_weights": {
+    "dj": 0.9,
+    "nasdaq": 0.85,
+    "reuters": 0.9,
+    "bloomberg": 0.95,
+    "wsj": 0.9,
+    "default": 0.5
+  },
+  "event_priors": {
+    "guidance_up": 0.8,
+    "guidance_down": 0.85,
+    "earnings_beat": 0.75,
+    "earnings_miss": 0.8,
+    "mna": 0.9,
+    "litigation": 0.6,
+    "product_launch": 0.65,
+    "executive_change": 0.7,
+    "dividend": 0.85,
+    "buyback": 0.8,
+    "default": 0.5
+  }
+}

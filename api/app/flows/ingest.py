@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import asyncio
 import hashlib
+from urllib.parse import urlparse
 import feedparser
 import httpx
 import trafilatura
@@ -52,7 +53,7 @@ def fetch_feeds(feed_urls: List[str], use_mock: bool = False) -> List[Dict]:
                     "published": datetime.fromtimestamp(
                         entry.get("published_parsed", datetime.now().timetuple())[:6]
                     ) if entry.get("published_parsed") else datetime.now(),
-                    "source": _extract_source_from_url(feed_url),
+                    "source": _extract_source_from_url(feed_url), # may add mappings as function?
                     "content": None  # Will be fetched separately
                 }
                 articles.append(article)
@@ -67,19 +68,62 @@ def fetch_feeds(feed_urls: List[str], use_mock: bool = False) -> List[Dict]:
     return articles if articles else MOCK_ARTICLES
 
 def _extract_source_from_url(url: str) -> str:
-    """Extract source name from URL"""
-    if "dj.com" in url or "dowjones" in url:
-        return "DJ"
-    elif "nasdaq.com" in url:
-        return "NASDAQ"
-    elif "reuters.com" in url:
-        return "Reuters"
-    elif "bloomberg.com" in url:
-        return "Bloomberg"
-    elif "wsj.com" in url:
-        return "WSJ"
-    else:
+    """Extract source name from URL (broader mapping, domain-normalized)."""
+    if not url:
         return "Unknown"
+    try:
+        parsed = urlparse(url)
+        domain = (parsed.netloc or parsed.path).lower()
+    except Exception:
+        domain = url.lower()
+    # strip common prefixes
+    if domain.startswith("www."):
+        domain = domain[4:]
+    # mapping of known domains -> canonical source name
+    # can it be added to settings?
+    mappings = {
+        "dj.com": "DJ",
+        "dowjones.com": "DJ",
+        "nasdaq.com": "NASDAQ",
+        "reuters.com": "Reuters",
+        "bloomberg.com": "Bloomberg",
+        "wsj.com": "WSJ",
+        "ft.com": "FT",
+        "financialtimes.com": "FT",
+        "marketwatch.com": "MarketWatch",
+        "cnbc.com": "CNBC",
+        "seekingalpha.com": "Seeking Alpha",
+        "investing.com": "Investing",
+        "barrons.com": "Barron's",
+        "forbes.com": "Forbes",
+        "nytimes.com": "NYTimes",
+        "theguardian.com": "The Guardian",
+        "businesswire.com": "BusinessWire",
+        "prnewswire.com": "PR Newswire",
+        "yahoo.com": "Yahoo",
+        "yahoofinance.com": "Yahoo Finance",
+        "spglobal.com": "S&P Global",
+        "cnn.com": "CNN",
+        "techcrunch.com": "TechCrunch",
+        "theverge.com": "The Verge",
+        "msn.com": "MSN",
+        "bloombergquint.com": "Bloomberg",
+        "globeandmail.com": "Globe and Mail",
+        "economist.com": "The Economist",
+        "ftalphaville.ft.com": "FT",
+        "businessinsider.com": "Business Insider",
+        "axios.com": "Axios"
+    }
+    # try exact / suffix matches first
+    for key, name in mappings.items():
+        if domain == key or domain.endswith("." + key):
+            return name
+    # fallback: check if any mapping key appears in the url string (covers feeds or odd paths)
+    lower_url = url.lower()
+    for key, name in mappings.items():
+        if key in lower_url:
+            return name
+    return "Unknown"
 
 @task
 async def extract_article_content(article: Dict) -> Dict:

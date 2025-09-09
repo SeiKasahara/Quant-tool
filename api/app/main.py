@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import structlog
 
-from app.api import signals, documents, tickers, health, backtest, metrics as metrics_api, sources as sources_api
+from app.api import signals, documents, tickers, health, backtest, metrics as metrics_api, sources as sources_api, event_patterns, auth, settings as settings_api
 from app.services import ingest_events
 from fastapi import Request
 from fastapi.responses import StreamingResponse
@@ -41,6 +41,9 @@ app.include_router(tickers.router, prefix="/tickers", tags=["tickers"])
 app.include_router(backtest.router, prefix="/backtest", tags=["backtest"])
 app.include_router(metrics_api.router, prefix="", tags=["metrics"])
 app.include_router(sources_api.router, prefix="", tags=["sources"])
+app.include_router(event_patterns.router, prefix="", tags=["event_patterns"])
+app.include_router(auth.router, prefix="", tags=["auth"])
+app.include_router(settings_api.router, prefix="", tags=["settings"])
 
 
 @app.get('/ingest/stream')

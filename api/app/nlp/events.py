@@ -2,96 +2,143 @@ import re
 from typing import List, Dict, Optional
 from datetime import datetime
 import structlog
+import json
+from pathlib import Path
 
 logger = structlog.get_logger()
 
+CONFIG_PATH = Path(__file__).parents[1] / "configs" / "event_patterns.json"
+
+
+def _load_patterns() -> Dict[str, List[str]]:
+    if CONFIG_PATH.exists():
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning("Failed to load event patterns, falling back to defaults", exc_info=e)
+    return {}
+
+
+def _save_patterns(data: Dict[str, List[str]]):
+    try:
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        logger.exception("Failed to save event patterns")
+
+
 class EventExtractor:
     def __init__(self):
-        # Define event patterns
-        self.event_patterns = {
-            "guidance_up": [
-                r"raises?\s+(?:full[- ]?year\s+)?guidance",
-                r"increases?\s+(?:revenue\s+)?outlook",
-                r"upgrades?\s+(?:earnings\s+)?forecast",
-                r"boosts?\s+(?:profit\s+)?guidance",
-                r"lifts?\s+(?:sales\s+)?expectations"
-            ],
-            "guidance_down": [
-                r"lowers?\s+(?:full[- ]?year\s+)?guidance",
-                r"cuts?\s+(?:revenue\s+)?outlook",
-                r"reduces?\s+(?:earnings\s+)?forecast",
-                r"slashes?\s+(?:profit\s+)?guidance",
-                r"downgrades?\s+expectations"
-            ],
-            "earnings_beat": [
-                r"beats?\s+(?:earnings\s+)?estimates?",
-                r"tops?\s+(?:profit\s+)?expectations?",
-                r"exceeds?\s+(?:revenue\s+)?forecasts?",
-                r"surpasses?\s+(?:wall\s+street\s+)?estimates?",
-                r"stronger[- ]than[- ]expected\s+(?:earnings|results)"
-            ],
-            "earnings_miss": [
-                r"misses?\s+(?:earnings\s+)?estimates?",
-                r"falls?\s+short\s+of\s+expectations?",
-                r"disappoints?\s+(?:on\s+)?(?:earnings|revenue)",
-                r"below\s+(?:wall\s+street\s+)?estimates?",
-                r"weaker[- ]than[- ]expected\s+(?:earnings|results)"
-            ],
-            "mna": [
-                r"acquires?\s+",
-                r"to\s+acquire\s+",
-                r"merger\s+(?:with|agreement)",
-                r"takeover\s+(?:bid|offer)",
-                r"agrees?\s+to\s+(?:buy|purchase|merge)",
-                r"completes?\s+(?:acquisition|merger)",
-                r"announces?\s+(?:acquisition|merger)"
-            ],
-            "litigation": [
-                r"lawsuit\s+(?:filed|against)",
-                r"sued\s+(?:by|for)",
-                r"legal\s+(?:action|proceedings?)",
-                r"regulatory\s+(?:probe|investigation)",
-                r"(?:SEC|DOJ|FTC)\s+(?:investigat|prob|inquir)",
-                r"settles?\s+(?:lawsuit|charges?)",
-                r"class[- ]action\s+(?:lawsuit|suit)"
-            ],
-            "product_launch": [
-                r"launches?\s+(?:new\s+)?product",
-                r"unveils?\s+(?:new\s+)?(?:product|service)",
-                r"introduces?\s+(?:new\s+)?(?:product|offering)",
-                r"debuts?\s+(?:new\s+)?(?:product|platform)",
-                r"announces?\s+(?:new\s+)?(?:product|service)\s+launch"
-            ],
-            "executive_change": [
-                r"(?:CEO|CFO|CTO|COO)\s+(?:resigns?|departs?|steps?\s+down)",
-                r"appoints?\s+(?:new\s+)?(?:CEO|CFO|CTO|COO)",
-                r"names?\s+(?:new\s+)?(?:chief|president)",
-                r"(?:executive|leadership)\s+(?:change|transition)",
-                r"replaces?\s+(?:CEO|CFO|CTO|COO)"
-            ],
-            "dividend": [
-                r"declares?\s+(?:quarterly\s+)?dividend",
-                r"announces?\s+(?:dividend|distribution)",
-                r"increases?\s+dividend",
-                r"cuts?\s+dividend",
-                r"suspends?\s+dividend",
-                r"dividend\s+(?:payment|declaration)"
-            ],
-            "buyback": [
-                r"share\s+(?:buyback|repurchase)",
-                r"stock\s+(?:buyback|repurchase)",
-                r"authorizes?\s+(?:\$[\d.]+[BMK]?\s+)?(?:buyback|repurchase)",
-                r"announces?\s+(?:\$[\d.]+[BMK]?\s+)?(?:buyback|repurchase)",
-                r"expands?\s+(?:buyback|repurchase)\s+program"
-            ]
-        }
-        
+        # Load patterns from config; fallback to built-ins if missing
+        loaded = _load_patterns()
+        if loaded:
+            self.event_patterns = loaded
+        else:
+            # default builtin patterns
+            self.event_patterns = {
+                "guidance_up": [
+                    r"raises?\\s+(?:full[- ]?year\\s+)?guidance",
+                    r"increases?\\s+(?:revenue\\s+)?outlook",
+                    r"upgrades?\\s+(?:earnings\\s+)?forecast",
+                    r"boosts?\\s+(?:profit\\s+)?guidance",
+                    r"lifts?\\s+(?:sales\\s+)?expectations"
+                ],
+                "guidance_down": [
+                    r"lowers?\\s+(?:full[- ]?year\\s+)?guidance",
+                    r"cuts?\\s+(?:revenue\\s+)?outlook",
+                    r"reduces?\\s+(?:earnings\\s+)?forecast",
+                    r"slashes?\\s+(?:profit\\s+)?guidance",
+                    r"downgrades?\\s+expectations"
+                ],
+                "earnings_beat": [
+                    r"beats?\\s+(?:earnings\\s+)?estimates?",
+                    r"tops?\\s+(?:profit\\s+)?expectations?",
+                    r"exceeds?\\s+(?:revenue\\s+)?forecasts?",
+                    r"surpasses?\\s+(?:wall\\s+street\\s+)?estimates?",
+                    r"stronger[- ]than[- ]expected\\s+(?:earnings|results)"
+                ],
+                "earnings_miss": [
+                    r"misses?\\s+(?:earnings\\s+)?estimates?",
+                    r"falls?\\s+short\\s+of\\s+expectations?",
+                    r"disappoints?\\s+(?:on\\s+)?(?:earnings|revenue)",
+                    r"below\\s+(?:wall\\s+street\\s+)?estimates?",
+                    r"weaker[- ]than[- ]expected\\s+(?:earnings|results)"
+                ],
+                "mna": [
+                    r"acquires?\\s+",
+                    r"to\\s+acquire\\s+",
+                    r"merger\\s+(?:with|agreement)",
+                    r"takeover\\s+(?:bid|offer)",
+                    r"agrees?\\s+to\\s+(?:buy|purchase|merge)",
+                    r"completes?\\s+(?:acquisition|merger)",
+                    r"announces?\\s+(?:acquisition|merger)"
+                ],
+                "litigation": [
+                    r"lawsuit\\s+(?:filed|against)",
+                    r"sued\\s+(?:by|for)",
+                    r"legal\\s+(?:action|proceedings?)",
+                    r"regulatory\\s+(?:probe|investigation)",
+                    r"(?:SEC|DOJ|FTC)\\s+(?:investigat|prob|inquir)",
+                    r"settles?\\s+(?:lawsuit|charges?)",
+                    r"class[- ]action\\s+(?:lawsuit|suit)"
+                ],
+                "product_launch": [
+                    r"launches?\\s+(?:new\\s+)?product",
+                    r"unveils?\\s+(?:new\\s+)?(?:product|service)",
+                    r"introduces?\\s+(?:new\\s+)?(?:product|offering)",
+                    r"debuts?\\s+(?:new\\s+)?(?:product|platform)",
+                    r"announces?\\s+(?:new\\s+)?(?:product|service)\\s+launch"
+                ],
+                "executive_change": [
+                    r"(?:CEO|CFO|CTO|COO)\\s+(?:resigns?|departs?|steps?\\s+down)",
+                    r"appoints?\\s+(?:new\\s+)?(?:CEO|CFO|CTO|COO)",
+                    r"names?\\s+(?:new\\s+)?(?:chief|president)",
+                    r"(?:executive|leadership)\\s+(?:change|transition)",
+                    r"replaces?\\s+(?:CEO|CFO|CTO|COO)"
+                ],
+                "dividend": [
+                    r"declares?\\s+(?:quarterly\\s+)?dividend",
+                    r"announces?\\s+(?:dividend|distribution)",
+                    r"increases?\\s+dividend",
+                    r"cuts?\\s+dividend",
+                    r"suspends?\\s+dividend",
+                    r"dividend\\s+(?:payment|declaration)"
+                ],
+                "buyback": [
+                    r"share\\s+(?:buyback|repurchase)",
+                    r"stock\\s+(?:buyback|repurchase)",
+                    r"authorizes?\\s+(?:\\$[\\d.]+[BMK]?\\s+)?(?:buyback|repurchase)",
+                    r"announces?\\s+(?:\\$[\\d.]+[BMK]?\\s+)?(?:buyback|repurchase)",
+                    r"expands?\\s+(?:buyback|repurchase)\\s+program"
+                ]
+            }
+
         # Compile patterns for efficiency
+        self._compile_patterns()
+
+    def _compile_patterns(self):
         self.compiled_patterns = {}
         for event_type, patterns in self.event_patterns.items():
-            self.compiled_patterns[event_type] = [
-                re.compile(pattern, re.IGNORECASE) for pattern in patterns
-            ]
+            try:
+                self.compiled_patterns[event_type] = [
+                    re.compile(pattern, re.IGNORECASE) for pattern in patterns
+                ]
+            except re.error:
+                logger.exception("Invalid regex in patterns for %s", event_type)
+
+    def reload_patterns(self):
+        loaded = _load_patterns()
+        if loaded:
+            self.event_patterns = loaded
+            self._compile_patterns()
+            return True
+        return False
+
+    def save_patterns(self):
+        _save_patterns(self.event_patterns)
+
     
     def extract_events(self, text: str, document_time: datetime, tickers: List[str] = None) -> List[Dict]:
         events = []
@@ -145,6 +192,7 @@ class EventExtractor:
     
     def _calculate_confidence(self, event_type: str, context: str) -> float:
         # Base confidence scores for different event types
+        # Should be configurable in the future
         base_confidence = {
             "guidance_up": 0.8,
             "guidance_down": 0.8,

@@ -44,8 +44,9 @@ services:
     env_file:
       - .env
     volumes:
-      - ./api:/app
-      - ./data:/data
+    - ./api:/app
+    - ./data:/data
+    - api_pip_cache:/root/.cache/pip
     depends_on:
       db:
         condition: service_healthy
@@ -76,3 +77,4 @@ services:
 
 volumes:
   postgres_data:
+  api_pip_cache:

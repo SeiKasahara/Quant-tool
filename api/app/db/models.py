@@ -185,3 +185,17 @@ class AuditLog(Base):
         Index('idx_audit_log_occurred', occurred_at.desc()),
         Index('idx_audit_log_target', target_type, target_id),
     )
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(50), default='user')
+    email = Column(String(255), unique=True, nullable=True, index=True)
+    email_confirmed = Column(Boolean, default=False)
+    email_token = Column(String(128), nullable=True, index=True)
+    token_expires_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())

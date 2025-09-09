@@ -20,7 +20,7 @@ class SignalFuser:
         self.k_unc = settings.K_UNC
         self.tau = settings.TAU
         
-        # Source weights mapping
+    # Source weights mapping (can be reloaded at runtime)
         self.source_weights = {
             "dj": 0.9,           # Dow Jones
             "nasdaq": 0.85,      # NASDAQ
@@ -30,7 +30,7 @@ class SignalFuser:
             "default": 0.5      # Unknown sources
         }
         
-        # Event prior probabilities
+        # Event prior probabilities (can be reloaded at runtime)
         self.event_priors = {
             "guidance_up": 0.8,
             "guidance_down": 0.85,
@@ -44,6 +44,65 @@ class SignalFuser:
             "buyback": 0.8,
             "default": 0.5
         }
+        # Attempt to load persisted settings file (if present)
+        try:
+            from pathlib import Path
+            cfg_path = Path(__file__).resolve().parents[1] / 'configs' / 'fuser_settings.json'
+            self.reload_from_file(cfg_path)
+        except Exception:
+            pass
+
+    def reload_from_dict(self, data: dict):
+        """Apply settings from a dict (weights, source_weights, event_priors)"""
+        w = data.get('weights', {})
+        # update scalar weights if present
+        self.w_src = float(w.get('W_SRC', self.w_src))
+        self.w_novel = float(w.get('W_NOVEL', self.w_novel))
+        self.w_evt = float(w.get('W_EVT', self.w_evt))
+        self.w_buzz = float(w.get('W_BUZZ', self.w_buzz))
+        self.k_cons = float(w.get('K_CONS', self.k_cons))
+        self.k_unc = float(w.get('K_UNC', self.k_unc))
+        self.tau = float(w.get('TAU', self.tau))
+
+        # update dicts
+        if 'source_weights' in data and isinstance(data['source_weights'], dict):
+            self.source_weights.update({k: float(v) for k, v in data['source_weights'].items()})
+
+        if 'event_priors' in data and isinstance(data['event_priors'], dict):
+            self.event_priors.update({k: float(v) for k, v in data['event_priors'].items()})
+
+    def save_to_file(self, path):
+        import json
+        from pathlib import Path
+        p = Path(path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            'weights': {
+                'W_SRC': self.w_src,
+                'W_NOVEL': self.w_novel,
+                'W_EVT': self.w_evt,
+                'W_BUZZ': self.w_buzz,
+                'K_CONS': self.k_cons,
+                'K_UNC': self.k_unc,
+                'TAU': self.tau
+            },
+            'source_weights': self.source_weights,
+            'event_priors': self.event_priors
+        }
+        p.write_text(json.dumps(data, indent=2))
+
+    def reload_from_file(self, path):
+        import json
+        from pathlib import Path
+        p = Path(path)
+        if not p.exists():
+            return
+        try:
+            data = json.loads(p.read_text())
+            self.reload_from_dict(data)
+        except Exception:
+            # ignore parse errors
+            return
     
     def calculate_confidence(
         self,
