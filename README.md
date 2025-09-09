@@ -1,4 +1,4 @@
-# Signal Detection System - Public Info → NLP → Signal Alert MVP
+# Investment Signal Detection System(Prototype Ongoing)
 
 An end-to-end financial signal detection system that processes public news feeds, applies NLP analysis, generates trading signals with confidence scores, and provides a web interface for monitoring and analysis.
 
